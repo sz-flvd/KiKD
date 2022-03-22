@@ -1,5 +1,7 @@
 package lab2
 
-func Encode() {
+var encoderDict Dictionary
 
+func Encode() {
+	encoderDict.Initialise()
 }

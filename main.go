@@ -12,4 +12,5 @@ func arithmeticCoding() {
 
 func main() {
 	fmt.Println("yoyo")
+	arithmeticCoding()
 }
