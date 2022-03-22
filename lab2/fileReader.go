@@ -2,7 +2,9 @@ package lab2
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -18,26 +20,24 @@ func ReadAndEncode(filename string) {
 	check(err)
 
 	br := bufio.NewReader(file)
+	encoderDict.Initialise()
 
-	b, e := br.ReadByte()
+	for {
+		b, e := br.ReadByte()
 
-	check(e)
-	fmt.Println(b)
+		if e != nil && !errors.Is(e, io.EOF) {
+			fmt.Println(e)
+			break
+		}
 
-	// for b,e := br.ReadByte() {
-	// 	if e != nil && !errors.Is(e, io.EOF) {
-	// 		fmt.Println(e)
-	// 		break
-	// 	}
+		encode(b)
 
-	// 	fmt.Println(b)
-
-	// 	if e != nil {
-	// 		break
-	// 	}
-	// }
+		if e != nil {
+			break
+		}
+	}
 }
 
 func ReadAndDecode(filename string) {
-
+	decoderDict.Initialise()
 }

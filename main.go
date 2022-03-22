@@ -6,8 +6,8 @@ import (
 )
 
 func arithmeticCoding() {
-	lab2.Encode()
-	lab2.Decode()
+	lab2.ReadAndEncode("lol")
+	lab2.ReadAndDecode("lol")
 }
 
 func main() {

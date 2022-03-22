@@ -2,7 +2,6 @@ package lab2
 
 var decoderDict Dictionary
 
-func Decode() {
-	decoderDict.Initialise()
+func decode(b byte) {
 
 }
