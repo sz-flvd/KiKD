@@ -25,30 +25,34 @@ func encode(b byte) {
 	}
 	encoderLeft = encoderLeft + encoderDict.symbols[i].F*d
 
-	if encoderLeft >= 0 && encoderRight <= 0.5 {
-		encoderLeft *= 2
-		encoderRight *= 2
+	for {
+		if encoderLeft >= 0 && encoderRight <= 0.5 {
+			encoderLeft *= 2
+			encoderRight *= 2
 
-		output = append(output, 0) //change to outputting to file
-		for j := 0; j < encoderCounter; j++ {
-			output = append(output, 1) //change to outputting to file
-		}
-
-		encoderCounter = 0
-	} else if encoderLeft >= 0.5 && encoderRight <= 1 {
-		encoderLeft = 2*encoderLeft - 1
-		encoderRight = 2*encoderRight - 1
-
-		output = append(output, 1) //change to outputting to file
-		for j := 0; j < encoderCounter; j++ {
 			output = append(output, 0) //change to outputting to file
-		}
+			for j := 0; j < encoderCounter; j++ {
+				output = append(output, 1) //change to outputting to file
+			}
 
-		encoderCounter = 0
-	} else if encoderLeft < 0.5 && encoderRight > 0.5 && encoderLeft >= 0.25 && encoderRight <= 0.75 {
-		encoderLeft = 2*encoderLeft - 0.5
-		encoderRight = 2*encoderRight - 0.5
-		encoderCounter++
+			encoderCounter = 0
+		} else if encoderLeft >= 0.5 && encoderRight <= 1 {
+			encoderLeft = 2*encoderLeft - 1
+			encoderRight = 2*encoderRight - 1
+
+			output = append(output, 1) //change to outputting to file
+			for j := 0; j < encoderCounter; j++ {
+				output = append(output, 0) //change to outputting to file
+			}
+
+			encoderCounter = 0
+		} else if encoderLeft < 0.5 && encoderRight > 0.5 && encoderLeft >= 0.25 && encoderRight <= 0.75 {
+			encoderLeft = 2*encoderLeft - 0.5
+			encoderRight = 2*encoderRight - 0.5
+			encoderCounter++
+		} else {
+			break
+		}
 	}
 
 	encoderDict.update(b)
@@ -85,5 +89,6 @@ func EncodeFile(filename string) {
 		}
 	}
 
+	fmt.Println(len(output))
 	fmt.Println(output) //close output file
 }
