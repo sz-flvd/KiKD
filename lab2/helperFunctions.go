@@ -32,3 +32,14 @@ func makeByte(bitstring string) byte {
 
 	return byte(val)
 }
+
+func makeBitstring(b byte) string {
+	bitstring := string(b)
+	l := len(bitstring)
+
+	for i := 0; i < 8-l; i++ {
+		bitstring = "0" + bitstring
+	}
+
+	return bitstring
+}

@@ -3,7 +3,6 @@ package lab2
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 )
@@ -73,8 +72,8 @@ func EncodeFile(in string, out string) {
 
 	br := bufio.NewReader(fileIn)
 	encoderDict.initialise()
-	encoderLeft = 0
-	encoderRight = 1
+	encoderLeft = 0.0
+	encoderRight = 1.0
 	encoderCounter = 0
 	encoderOutput = ""
 
@@ -82,8 +81,7 @@ func EncodeFile(in string, out string) {
 		b, e := br.ReadByte()
 
 		if e != nil && !errors.Is(e, io.EOF) {
-			fmt.Println(e)
-			break
+			panic(e)
 		}
 
 		encode(b)
@@ -104,15 +102,7 @@ func EncodeFile(in string, out string) {
 		}
 	}
 
-	for {
-		if len(encoderOutput) >= 8 {
-			byte := []byte{makeByte(encoderOutput)}
-			_, writeErr := fileOut.Write(byte)
-			check(writeErr)
-			encoderOutput = encoderOutput[8:]
-		} else {
-			break
-		}
-	}
-
+	byte := []byte{makeByte(encoderOutput)}
+	_, writeErr := fileOut.Write(byte)
+	check(writeErr)
 }
