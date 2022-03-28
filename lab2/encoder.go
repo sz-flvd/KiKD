@@ -12,7 +12,7 @@ var encoderDict dictionary
 var encoderLeft float64
 var encoderRight float64
 var encoderCounter int
-var output []int
+var encoderOutput string
 
 func encode(b byte) {
 	i := int(b)
@@ -30,9 +30,9 @@ func encode(b byte) {
 			encoderLeft *= 2
 			encoderRight *= 2
 
-			output = append(output, 0) //change to outputting to file
+			encoderOutput = encoderOutput + "0"
 			for j := 0; j < encoderCounter; j++ {
-				output = append(output, 1) //change to outputting to file
+				encoderOutput = encoderOutput + "1"
 			}
 
 			encoderCounter = 0
@@ -40,9 +40,9 @@ func encode(b byte) {
 			encoderLeft = 2*encoderLeft - 1
 			encoderRight = 2*encoderRight - 1
 
-			output = append(output, 1) //change to outputting to file
+			encoderOutput = encoderOutput + "1"
 			for j := 0; j < encoderCounter; j++ {
-				output = append(output, 0) //change to outputting to file
+				encoderOutput = encoderOutput + "0"
 			}
 
 			encoderCounter = 0
@@ -62,17 +62,21 @@ func encode(b byte) {
 	}
 }
 
-func EncodeFile(filename string) {
-	file, err := os.Open(filename)
-	defer file.Close()
-	check(err)
+func EncodeFile(in string, out string) {
+	fileIn, errIn := os.Open(in)
+	check(errIn)
+	defer fileIn.Close()
 
-	br := bufio.NewReader(file)
+	fileOut, errOut := os.Create(out)
+	check(errOut)
+	defer fileOut.Close()
+
+	br := bufio.NewReader(fileIn)
 	encoderDict.initialise()
 	encoderLeft = 0
 	encoderRight = 1
 	encoderCounter = 0
-	output = make([]int, 0)
+	encoderOutput = ""
 
 	for {
 		b, e := br.ReadByte()
@@ -84,11 +88,31 @@ func EncodeFile(filename string) {
 
 		encode(b)
 
+		for {
+			if len(encoderOutput) >= 8 {
+				byte := []byte{makeByte(encoderOutput)}
+				_, writeErr := fileOut.Write(byte)
+				check(writeErr)
+				encoderOutput = encoderOutput[8:]
+			} else {
+				break
+			}
+		}
+
 		if e != nil {
 			break
 		}
 	}
 
-	fmt.Println(len(output))
-	fmt.Println(output) //close output file
+	for {
+		if len(encoderOutput) >= 8 {
+			byte := []byte{makeByte(encoderOutput)}
+			_, writeErr := fileOut.Write(byte)
+			check(writeErr)
+			encoderOutput = encoderOutput[8:]
+		} else {
+			break
+		}
+	}
+
 }

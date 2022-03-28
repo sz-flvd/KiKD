@@ -6,6 +6,7 @@ func decode(b byte) {
 
 }
 
-func DecodeFile(filename string) {
+func DecodeFile(in string, out string) {
 	decoderDict.initialise()
+	decode(1)
 }
