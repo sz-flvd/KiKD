@@ -73,4 +73,8 @@ func (d *dictionary) update(code byte) {
 
 		d.symbols[k].F = f
 	}
+
+	if d.totalCount >= 2*symbolCount {
+		d.rescale()
+	}
 }

@@ -3,8 +3,8 @@ package lab2
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
+	"math"
 	"os"
 )
 
@@ -15,9 +15,62 @@ var decoderCounter int
 var decoderInput string
 var decoderOutput []byte
 
-func decode(bitstring string) {
-	if decoderLeft < decoderRight {
-		fmt.Println(decoderCounter) // przestań krzyczeć na mnie że nie używam tych zmiennych pls
+func decode() {
+	for {
+		tag := getTagValue(decoderInput[:int(math.Min(float64(len(decoderInput)), float64(decoderDict.minLength)))])
+		d := decoderRight - decoderLeft
+		for i := 0; i < symbolCount; i++ {
+			if i < 255 {
+				if decoderLeft+decoderDict.symbols[i].F*d <= tag && tag < decoderLeft+decoderDict.symbols[i+1].F*d {
+					decoderOutput = append(decoderOutput, decoderDict.symbols[i].code)
+					decoderRight = decoderLeft + decoderDict.symbols[i+1].F*d
+					decoderLeft = decoderLeft + decoderDict.symbols[i].F*d
+					decoderDict.update(byte(i))
+					break
+				}
+			} else {
+				decoderOutput = append(decoderOutput, decoderDict.symbols[len(decoderDict.symbols)-1].code)
+				decoderRight = decoderLeft + d
+				decoderLeft = decoderLeft + decoderDict.symbols[i].F*d
+				decoderDict.update(byte(i))
+			}
+		}
+
+		for {
+			if decoderLeft >= 0 && decoderRight <= 0.5 {
+				decoderLeft *= 2
+				decoderRight *= 2
+
+				for j := 0; j < decoderCounter+1; j++ {
+					if len(decoderInput) == 0 {
+						break
+					}
+
+					decoderInput = decoderInput[1:]
+				}
+			} else if decoderLeft >= 0.5 && decoderRight <= 1 {
+				decoderLeft = 2*decoderLeft - 1
+				decoderRight = 2*decoderRight - 1
+
+				for j := 0; j < decoderCounter+1; j++ {
+					if len(decoderInput) == 0 {
+						break
+					}
+
+					decoderInput = decoderInput[1:]
+				}
+			} else if decoderLeft < 0.5 && decoderRight > 0.5 && decoderLeft >= 0.25 && decoderRight <= 0.75 {
+				decoderLeft = 2*decoderLeft - 0.5
+				decoderRight = 2*decoderRight - 0.5
+				decoderCounter++
+			} else {
+				break
+			}
+		}
+
+		if len(decoderInput) <= int(decoderDict.minLength) {
+			break
+		}
 	}
 }
 
@@ -39,29 +92,22 @@ func DecodeFile(in string, out string) {
 	decoderOutput = make([]byte, 0)
 
 	for {
-		var e error
-		for {
-			b, e := br.ReadByte()
+		b, e := br.ReadByte()
 
-			if e != nil && !errors.Is(e, io.EOF) {
-				panic(e)
-			}
-
-			decoderInput = decoderInput + makeBitstring(b)
-
-			if len(decoderInput) >= int(decoderDict.minLength) || e != nil {
-				break
-			}
+		if e != nil && !errors.Is(e, io.EOF) {
+			panic(e)
 		}
-
-		decode(decoderInput)
-
-		_, writeErr := fileOut.Write(decoderOutput)
-		check(writeErr)
-		decoderOutput = decoderOutput[:0]
 
 		if e != nil {
 			break
 		}
+
+		decoderInput = decoderInput + makeBitstring(b)
 	}
+
+	decode()
+
+	_, writeErr := fileOut.Write(decoderOutput)
+	check(writeErr)
+	decoderOutput = decoderOutput[:0]
 }

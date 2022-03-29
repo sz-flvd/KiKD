@@ -55,10 +55,6 @@ func encode(b byte) {
 	}
 
 	encoderDict.update(b)
-
-	if encoderDict.totalCount >= 2*symbolCount {
-		encoderDict.rescale()
-	}
 }
 
 func EncodeFile(in string, out string) {
@@ -84,25 +80,25 @@ func EncodeFile(in string, out string) {
 			panic(e)
 		}
 
+		if e != nil {
+			break
+		}
+
 		encode(b)
 
 		for {
 			if len(encoderOutput) >= 8 {
-				byte := []byte{makeByte(encoderOutput)}
-				_, writeErr := fileOut.Write(byte)
+				outputByte := []byte{makeByte(encoderOutput)}
+				_, writeErr := fileOut.Write(outputByte)
 				check(writeErr)
 				encoderOutput = encoderOutput[8:]
 			} else {
 				break
 			}
 		}
-
-		if e != nil {
-			break
-		}
 	}
 
-	byte := []byte{makeByte(encoderOutput)}
-	_, writeErr := fileOut.Write(byte)
+	outputByte := []byte{makeByte(encoderOutput)}
+	_, writeErr := fileOut.Write(outputByte)
 	check(writeErr)
 }

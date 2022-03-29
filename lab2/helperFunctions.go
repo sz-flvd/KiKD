@@ -1,6 +1,9 @@
 package lab2
 
-import "math"
+import (
+	"math"
+	"strconv"
+)
 
 func check(e error) {
 	if e != nil {
@@ -26,7 +29,7 @@ func makeByte(bitstring string) byte {
 	for i := 0; i < 8; i++ {
 		bit := bitstring[i]
 		if bit == '1' {
-			val += int(bitstring[i]) * int(math.Pow(2.0, float64(7.0-i)))
+			val += int(math.Pow(2.0, float64(7.0-i)))
 		}
 	}
 
@@ -34,7 +37,7 @@ func makeByte(bitstring string) byte {
 }
 
 func makeBitstring(b byte) string {
-	bitstring := string(b)
+	bitstring := strconv.FormatUint(uint64(b), 2)
 	l := len(bitstring)
 
 	for i := 0; i < 8-l; i++ {
@@ -42,4 +45,16 @@ func makeBitstring(b byte) string {
 	}
 
 	return bitstring
+}
+
+func getTagValue(bitstring string) float64 {
+	tag := 0.0
+
+	for i := 0; i < len(bitstring); i++ {
+		if bitstring[i] == '1' {
+			tag += math.Pow(0.5, float64(i+1))
+		}
+	}
+
+	return tag
 }
