@@ -14,7 +14,7 @@ func main() {
 			lab2.DecodeFile(os.Args[2], os.Args[3])
 		}
 	} else {
-		fmt.Println("Usage: go run main.go -e file_to_encode or")
-		fmt.Println("go run main.go -d file_to_decode")
+		fmt.Println("Usage:\tgo run main.go -e file_to_encode output_file\n\tor")
+		fmt.Println("\tgo run main.go -d file_to_decode output_file")
 	}
 }

@@ -5,17 +5,13 @@ import (
 	"strconv"
 )
 
-func check(e error) {
+func Check(e error) {
 	if e != nil {
 		panic(e)
 	}
 }
 
-func makeByte(bitstring string) byte {
-	if len(bitstring) < 8 {
-		bitstring = bitstring + "1"
-	}
-
+func MakeByte(bitstring string) byte {
 	for {
 		if len(bitstring) < 8 {
 			bitstring = bitstring + "0"
@@ -27,16 +23,15 @@ func makeByte(bitstring string) byte {
 	val := 0
 
 	for i := 0; i < 8; i++ {
-		bit := bitstring[i]
-		if bit == '1' {
-			val += int(math.Pow(2.0, float64(7.0-i)))
+		if bitstring[i] == '1' {
+			val += int(math.Pow(2.0, float64(7-i)))
 		}
 	}
 
 	return byte(val)
 }
 
-func makeBitstring(b byte) string {
+func MakeBitstring(b byte) string {
 	bitstring := strconv.FormatUint(uint64(b), 2)
 	l := len(bitstring)
 
@@ -47,7 +42,30 @@ func makeBitstring(b byte) string {
 	return bitstring
 }
 
-func getTagValue(bitstring string) float64 {
+func FloatToBitstring(f float64, precision int) string {
+	bitstring := ""
+	approx := 0.0
+	zeroCounter := 0
+
+	for i := 1; i <= precision; {
+		if f >= approx+math.Pow(0.5, float64(i)) {
+			for j := 0; j < zeroCounter; j++ {
+				bitstring = bitstring + "0"
+			}
+			zeroCounter = 0
+			bitstring = bitstring + "1"
+			approx += math.Pow(0.5, float64(i))
+			i++
+		} else {
+			zeroCounter++
+			i++
+		}
+	}
+
+	return bitstring
+}
+
+func GetTagValue(bitstring string) float64 {
 	tag := 0.0
 
 	for i := 0; i < len(bitstring); i++ {
