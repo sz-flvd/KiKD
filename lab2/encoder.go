@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"errors"
 	"io"
+	"math"
 	"os"
 )
 
 var encoderDict dictionary
-var encoderLeft float64
-var encoderRight float64
+var encoderLeft uint64
+var encoderRight uint64
 var encoderCounter int
 var encoderOutput string
 
@@ -17,34 +18,36 @@ func encode(b byte) {
 	i := int(b)
 
 	d := encoderRight - encoderLeft
-	encoderRight = encoderLeft + encoderDict.F[i+1]*d
-	encoderLeft = encoderLeft + encoderDict.F[i]*d
+	encoderRight = encoderLeft + (encoderDict.F[i+1] * d / encoderDict.totalCount)
+	encoderLeft = encoderLeft + (encoderDict.F[i] * d / encoderDict.totalCount)
 	encoderDict.update(b)
 
 	for {
-		if encoderLeft >= 0.0 && encoderRight <= 0.5 {
-			encoderLeft *= 2.0
-			encoderRight *= 2.0
+		if encoderRight <= half || encoderLeft >= half {
+			if encoderRight <= half {
+				encoderLeft *= 2
+				encoderRight = 2*encoderRight + 1
 
-			encoderOutput = encoderOutput + "0"
-			for j := 0; j < encoderCounter; j++ {
-				encoderOutput = encoderOutput + "1"
-			}
-
-			encoderCounter = 0
-		} else if encoderLeft >= 0.5 && encoderRight <= 1.0 {
-			encoderLeft = 2.0*encoderLeft - 1.0
-			encoderRight = 2.0*encoderRight - 1.0
-
-			encoderOutput = encoderOutput + "1"
-			for j := 0; j < encoderCounter; j++ {
 				encoderOutput = encoderOutput + "0"
-			}
+				for j := 0; j < encoderCounter; j++ {
+					encoderOutput = encoderOutput + "1"
+				}
 
-			encoderCounter = 0
-		} else if encoderLeft < 0.5 && encoderRight > 0.5 && encoderLeft >= 0.25 && encoderRight <= 0.75 {
-			encoderLeft = 2.0*encoderLeft - 0.5
-			encoderRight = 2.0*encoderRight - 0.5
+				encoderCounter = 0
+			} else {
+				encoderLeft = 2 * (encoderLeft - half)
+				encoderRight = 2*(encoderRight-half) + 1
+
+				encoderOutput = encoderOutput + "1"
+				for j := 0; j < encoderCounter; j++ {
+					encoderOutput = encoderOutput + "0"
+				}
+
+				encoderCounter = 0
+			}
+		} else if encoderLeft < half && encoderRight > half && encoderLeft >= quarter && encoderRight <= 3*quarter {
+			encoderLeft = 2 * (encoderLeft - quarter)
+			encoderRight = 2*(encoderRight-quarter) + 1
 			encoderCounter++
 		} else {
 			break
@@ -63,8 +66,8 @@ func EncodeFile(in string, out string) {
 
 	br := bufio.NewReader(fileIn)
 	encoderDict.initialise()
-	encoderLeft = 0.0
-	encoderRight = 1.0
+	encoderLeft = 0
+	encoderRight = whole
 	encoderCounter = 0
 	encoderOutput = ""
 
@@ -93,20 +96,30 @@ func EncodeFile(in string, out string) {
 		}
 	}
 
-	encoderOutput = encoderOutput + FloatToBitstring((encoderLeft+encoderRight)/2.0, int(encoderDict.minLength))
+	tagString := TagToBitstring(encoderLeft, int(precision))
+
+	encoderOutput = encoderOutput + string(tagString[0])
+
+	for i := 0; i < encoderCounter; i++ {
+		if tagString[0] == '0' {
+			encoderOutput = encoderOutput + "1"
+		} else {
+			encoderOutput = encoderOutput + "0"
+		}
+	}
+
+	for i := 1; i < len(tagString); i++ {
+		encoderOutput = encoderOutput + string(tagString[i])
+	}
 
 	for {
-		if len(encoderOutput) >= 8 {
+		if len(encoderOutput) > 0 {
 			outputByte := []byte{MakeByte(encoderOutput)}
 			_, writeErr := fileOut.Write(outputByte)
 			Check(writeErr)
-			encoderOutput = encoderOutput[8:]
+			encoderOutput = encoderOutput[int(math.Min(8.0, float64(len(encoderOutput)))):]
 		} else {
 			break
 		}
 	}
-
-	outputByte := []byte{MakeByte(encoderOutput)}
-	_, writeErr := fileOut.Write(outputByte)
-	Check(writeErr)
 }

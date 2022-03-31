@@ -8,61 +8,58 @@ import (
 )
 
 var decoderDict dictionary
-var decoderLeft float64
-var decoderRight float64
-var decoderMid float64
-var decoderCounter int
+var decoderLeft uint64
+var decoderRight uint64
 var decoderInput string
 var decoderOutput []byte
 
 func decode() {
-	for {
-		tag := GetTagValue(decoderInput[:decoderDict.minLength])
+	tag := GetTagValue(decoderInput[:precision], precision)
+	decoderInput = decoderInput[precision:]
 
+	for {
 		for i := 0; i < symbolCount; i++ {
-			if decoderLeft+decoderDict.F[i]*(decoderRight-decoderLeft) <= tag && tag < decoderLeft+decoderDict.F[i+1]*(decoderRight-decoderLeft) {
+			d := decoderRight - decoderLeft
+			if decoderLeft+(decoderDict.F[i]*d/decoderDict.totalCount) <= tag && tag < decoderLeft+(decoderDict.F[i+1]*d/decoderDict.totalCount) {
 				decoderOutput = append(decoderOutput, decoderDict.symbols[i].code)
-				decoderMid = decoderRight - decoderLeft
-				decoderRight = decoderLeft + decoderDict.F[i+1]*decoderMid
-				decoderLeft = decoderLeft + decoderDict.F[i]*decoderMid
+				decoderRight = decoderLeft + (decoderDict.F[i+1] * d / decoderDict.totalCount)
+				decoderLeft = decoderLeft + (decoderDict.F[i] * d / decoderDict.totalCount)
 				decoderDict.update(byte(i))
 				break
 			}
 		}
 
 		for {
-			if decoderLeft >= 0.0 && decoderRight <= 0.5 {
-				decoderLeft *= 2.0
-				decoderRight *= 2.0
-
-				if len(decoderInput) <= decoderCounter {
-					decoderInput = decoderInput[:0]
-					break
+			if decoderRight <= half || decoderLeft >= half {
+				if decoderRight <= half {
+					decoderLeft *= 2
+					decoderRight = 2*decoderRight + 1
+					tag *= 2
+				} else {
+					decoderLeft = 2 * (decoderLeft - half)
+					decoderRight = 2*(decoderRight-half) + 1
+					tag = 2 * (tag - half)
 				}
 
-				decoderInput = decoderInput[decoderCounter+1:]
-				decoderCounter = 0
-			} else if decoderLeft >= 0.5 && decoderRight <= 1.0 {
-				decoderLeft = 2.0*decoderLeft - 1.0
-				decoderRight = 2.0*decoderRight - 1.0
-
-				if len(decoderInput) <= decoderCounter {
-					decoderInput = decoderInput[:0]
-					break
+				if decoderInput[0] == '1' {
+					tag += 1
 				}
+				decoderInput = decoderInput[1:]
+			} else if decoderLeft < half && decoderRight > half && decoderLeft >= quarter && decoderRight <= 3*quarter {
+				decoderLeft = 2 * (decoderLeft - quarter)
+				decoderRight = 2*(decoderRight-quarter) + 1
+				tag = 2 * (tag - quarter)
 
-				decoderInput = decoderInput[decoderCounter+1:]
-				decoderCounter = 0
-			} else if decoderLeft < 0.5 && decoderRight > 0.5 && decoderLeft >= 0.25 && decoderRight <= 0.75 {
-				decoderLeft = 2.0*decoderLeft - 0.5
-				decoderRight = 2.0*decoderRight - 0.5
-				decoderCounter++
+				if decoderInput[0] == '1' {
+					tag += 1
+				}
+				decoderInput = decoderInput[1:]
 			} else {
 				break
 			}
 		}
 
-		if len(decoderInput) < int(decoderDict.minLength) {
+		if len(decoderInput) < int(precision) {
 			break
 		}
 	}
@@ -79,10 +76,8 @@ func DecodeFile(in string, out string) {
 
 	br := bufio.NewReader(fileIn)
 	decoderDict.initialise()
-	decoderLeft = 0.0
-	decoderRight = 1.0
-	decoderMid = 0.5
-	decoderCounter = 0
+	decoderLeft = 0
+	decoderRight = whole
 	decoderInput = ""
 	decoderOutput = make([]byte, 0)
 
@@ -91,7 +86,7 @@ func DecodeFile(in string, out string) {
 
 		if e != nil {
 			if !errors.Is(e, io.EOF) {
-				panic(e)
+				Check(e)
 			} else {
 				break
 			}
@@ -100,17 +95,14 @@ func DecodeFile(in string, out string) {
 		decoderInput = decoderInput + MakeBitstring(b)
 	}
 
-	for {
-		if decoderInput[len(decoderInput)-1] == '0' {
-			decoderInput = decoderInput[:len(decoderInput)-1]
-		} else {
-			break
-		}
+	for i := 0; i < int(precision); i++ {
+		decoderInput = decoderInput + "0"
 	}
 
 	decode()
 
+	decoderOutput = decoderOutput[:len(decoderOutput)-1]
+
 	_, writeErr := fileOut.Write(decoderOutput)
 	Check(writeErr)
-	decoderOutput = decoderOutput[:0]
 }

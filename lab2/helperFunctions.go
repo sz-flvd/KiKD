@@ -42,35 +42,23 @@ func MakeBitstring(b byte) string {
 	return bitstring
 }
 
-func FloatToBitstring(f float64, precision int) string {
-	bitstring := ""
-	approx := 0.0
-	zeroCounter := 0
+func TagToBitstring(tag uint64, precision int) string {
+	bitstring := strconv.FormatUint(tag, 2)
+	l := len(bitstring)
 
-	for i := 1; i <= precision; {
-		if f >= approx+math.Pow(0.5, float64(i)) {
-			for j := 0; j < zeroCounter; j++ {
-				bitstring = bitstring + "0"
-			}
-			zeroCounter = 0
-			bitstring = bitstring + "1"
-			approx += math.Pow(0.5, float64(i))
-			i++
-		} else {
-			zeroCounter++
-			i++
-		}
+	for i := 0; i < precision-l; i++ {
+		bitstring = "0" + bitstring
 	}
 
 	return bitstring
 }
 
-func GetTagValue(bitstring string) float64 {
-	tag := 0.0
+func GetTagValue(bitstring string, precision uint8) uint64 {
+	tag := uint64(0)
 
 	for i := 0; i < len(bitstring); i++ {
 		if bitstring[i] == '1' {
-			tag += math.Pow(0.5, float64(i+1))
+			tag += uint64(math.Pow(2, float64(int(precision)-i-1)))
 		}
 	}
 
