@@ -25,7 +25,7 @@ func encode(b byte) {
 
 	for {
 		if encoderRight < half || encoderLeft >= half {
-			if encoderRight <= half {
+			if encoderRight < half {
 				encoderLeft *= 2
 				encoderRight *= 2
 

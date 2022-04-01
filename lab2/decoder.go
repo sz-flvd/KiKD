@@ -18,20 +18,30 @@ func decode() {
 	decoderInput = decoderInput[precision:]
 
 	for {
-		for i := 0; i < symbolCount; i++ {
-			d := decoderRight - decoderLeft + 1
+		d := decoderRight - decoderLeft + 1
+
+		l := 0
+		r := symbolCount - 1
+
+		for {
+			i := (l + r) / 2
+
 			if decoderLeft+(decoderDict.F[i]*d/decoderDict.totalCount) <= tag && tag < decoderLeft+(decoderDict.F[i+1]*d/decoderDict.totalCount) {
 				decoderOutput = append(decoderOutput, decoderDict.symbols[i].code)
 				decoderRight = decoderLeft + (decoderDict.F[i+1] * d / decoderDict.totalCount) - 1
 				decoderLeft = decoderLeft + (decoderDict.F[i] * d / decoderDict.totalCount)
 				decoderDict.update(byte(i))
 				break
+			} else if tag < decoderLeft+(decoderDict.F[i]*d/decoderDict.totalCount) {
+				r = i - 1
+			} else { // tag >= decoderLeft+(decoderDict.F[i+1]*d/decoderDict.totalCount)
+				l = i + 1
 			}
 		}
 
 		for {
 			if decoderRight < half || decoderLeft >= half {
-				if decoderRight <= half {
+				if decoderRight < half {
 					decoderLeft *= 2
 					decoderRight *= 2
 					tag *= 2
@@ -93,20 +103,20 @@ func DecodeFile(in string, out string) {
 	for {
 		b, e := br.ReadByte()
 
-		if e != nil {
-			if !errors.Is(e, io.EOF) {
-				Check(e)
-			} else {
-				break
-			}
+		if e != nil && !errors.Is(e, io.EOF) {
+			Check(e)
 		}
 
 		decoderInput = decoderInput + MakeBitstring(b)
+
+		if e != nil {
+			break
+		}
 	}
 
-	for i := 0; i < int(precision); i++ {
-		decoderInput = decoderInput + "0"
-	}
+	// for i := 0; i < int(precision); i++ {
+	// 	decoderInput = decoderInput + "0"
+	// }
 
 	decode()
 
