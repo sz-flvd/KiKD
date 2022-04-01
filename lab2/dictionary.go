@@ -5,10 +5,10 @@ import (
 )
 
 const symbolCount = 256
-const precision uint8 = 32      //need to be able to represent at least 2^42
-const whole uint64 = 4294967296 //2 ^ precision
-const half uint64 = whole / 2
-const quarter uint64 = half / 2
+const precision uint8 = 32          //need to be able to represent at least 2^42
+const whole uint64 = 4294967295     //2 ^ precision - 1
+const half uint64 = (whole + 1) / 2 //2 ^ (precision - 1)
+const quarter uint64 = half / 2     //2 ^ (precision - 2)
 
 type dictionary struct {
 	symbols    []symbol
@@ -69,7 +69,7 @@ func (d *dictionary) update(code byte) {
 	d.symbols[i].count++
 	d.totalCount++
 
-	if d.totalCount >= 4*symbolCount {
+	if d.totalCount >= quarter {
 		d.rescale()
 	} else {
 		for k := 0; k < symbolCount; k++ {
@@ -82,6 +82,8 @@ func (d *dictionary) update(code byte) {
 			d.F[k] = f
 		}
 	}
+
+	d.F[symbolCount] = d.totalCount
 
 	for k := 0; k < symbolCount; k++ {
 		if (float64(d.symbols[k].count) / float64(d.totalCount)) < minProb {

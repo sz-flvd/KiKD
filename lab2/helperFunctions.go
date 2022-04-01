@@ -64,3 +64,26 @@ func GetTagValue(bitstring string, precision uint8) uint64 {
 
 	return tag
 }
+
+func CalculateEntropy(d *dictionary) float64 {
+	entropy := 0.0
+
+	for _, s := range d.symbols {
+		entropy += float64(s.count) / float64(d.totalCount) * -math.Log2(float64(s.count)/float64(d.totalCount))
+	}
+
+	return entropy
+}
+
+func CalculateCompressionRate(inputSize uint64, outputSize uint64) float64 {
+	compressionRate := float64(inputSize) / float64(outputSize)
+
+	return compressionRate
+}
+
+func CalculateAverageCodeLength(inputSize uint64, outputSize uint64) float64 {
+	avgCodeLength := 8 / CalculateCompressionRate(inputSize, outputSize)
+
+	return avgCodeLength
+
+}
