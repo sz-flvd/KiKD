@@ -103,8 +103,13 @@ func DecodeFile(in string, out string) {
 	for {
 		b, e := br.ReadByte()
 
-		if e != nil && !errors.Is(e, io.EOF) {
-			Check(e)
+		if e != nil {
+
+			if !errors.Is(e, io.EOF) {
+				Check(e)
+			} else {
+				break
+			}
 		}
 
 		decoderInput = decoderInput + MakeBitstring(b)
@@ -114,9 +119,9 @@ func DecodeFile(in string, out string) {
 		}
 	}
 
-	// for i := 0; i < int(precision); i++ {
-	// 	decoderInput = decoderInput + "0"
-	// }
+	for i := 0; i < int(precision); i++ {
+		decoderInput = decoderInput + "0"
+	}
 
 	decode()
 
