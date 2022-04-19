@@ -32,6 +32,10 @@ func (d *dictionary) newEntry(b []byte) {
 	d.last++
 }
 
+func (d *dictionary) updateLast(b byte) {
+	d.entries[d.last-1].bytes = append(d.entries[d.last-1].bytes, b)
+}
+
 func (d *dictionary) find(b []byte) int {
 	for _, e := range d.entries {
 		if bytes.Equal(b, e.bytes) {

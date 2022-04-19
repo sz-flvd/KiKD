@@ -25,21 +25,21 @@ func decode(code string, param int) (int, int) {
 
 func Decode(in string, out string, param int) {
 	fileIn, errIn := os.Open(in)
+	lab2.Check(errIn)
+	defer fileIn.Close()
+
 	fileOut, errOut := os.Create(out)
+	lab2.Check(errOut)
+	defer fileOut.Close()
 
 	br := bufio.NewReader(fileIn)
 	var dict dictionary
 	var b byte
 	var e error
+	var writeErr error
 	var code int
 	var length int
 	input := ""
-
-	lab2.Check(errIn)
-	defer fileIn.Close()
-
-	lab2.Check(errOut)
-	defer fileOut.Close()
 
 	dict.initialise()
 
@@ -58,9 +58,10 @@ func Decode(in string, out string, param int) {
 		code, length = decode(input, param)
 
 		if code != 0 && length != 0 {
-			_, writeErr := fileOut.Write(dict.entries[code-1].bytes)
+			code--
+			_, writeErr = fileOut.Write(dict.entries[code].bytes)
 			lab2.Check(writeErr)
-			// outputSize++
+
 			if length > len(input)-1 {
 				input = input[:0]
 			} else {
@@ -68,9 +69,15 @@ func Decode(in string, out string, param int) {
 			}
 
 			if dict.last > symbolCount {
-				dict.entries[len(dict.entries)-1].bytes = append(dict.entries[len(dict.entries)-1].bytes, dict.entries[code-1].bytes[0])
+				dict.updateLast(dict.entries[code].bytes[0])
+
+				if int(dict.last-1) == code {
+					_, writeErr = fileOut.Write([]byte{dict.entries[code].bytes[0]})
+					lab2.Check(writeErr)
+				}
 			}
-			dict.newEntry(dict.entries[code-1].bytes)
+
+			dict.newEntry(dict.entries[code].bytes)
 		}
 	}
 }
