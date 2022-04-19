@@ -1,12 +1,11 @@
 package lab3
 
 import (
-	"fmt"
 	"strconv"
 )
 
-func eliasGamma(num uint64) string {
-	code := strconv.FormatUint(num, 2)
+func eliasGamma(num int) string {
+	code := strconv.FormatInt(int64(num), 2)
 	n := len(code)
 
 	for i := 0; i < n-1; i++ {
@@ -16,11 +15,15 @@ func eliasGamma(num uint64) string {
 	return code
 }
 
-func eliasGammaDecode(code string) (uint64, uint64) {
-	var n uint64
+func eliasGammaDecode(code string) (int, int) {
+	var n int64
 	counter := 0
 
 	for {
+		if counter >= len(code)-1 {
+			return 0, 0
+		}
+
 		if code[counter] == '0' {
 			counter++
 		} else {
@@ -28,27 +31,35 @@ func eliasGammaDecode(code string) (uint64, uint64) {
 		}
 	}
 
-	n, _ = strconv.ParseUint(code[counter:2*counter+1], 2, 64)
+	if len(code) <= 2*counter {
+		return 0, 0
+	}
 
-	return n, uint64(2*counter + 1)
+	n, _ = strconv.ParseInt(code[counter:2*counter+1], 2, 64)
+
+	return int(n), 2*counter + 1
 }
 
-func eliasDelta(num uint64) string {
-	code := strconv.FormatUint(num, 2)
+func eliasDelta(num int) string {
+	code := strconv.FormatInt(int64(num), 2)
 	n := len(code)
-	prefix := eliasGamma(uint64(n))
+	prefix := eliasGamma(n)
 	code = prefix + code[1:]
 
 	return code
 }
 
-func eliasDeltaDecode(code string) (uint64, uint64) {
-	var x uint64
-	var n uint64
-	var k uint64
+func eliasDeltaDecode(code string) (int, int) {
+	var x int64
+	var n int64
+	var k int
 	counter := 0
 
 	for {
+		if counter >= len(code)-1 {
+			return 0, 0
+		}
+
 		if code[counter] == '0' {
 			counter++
 		} else {
@@ -56,14 +67,24 @@ func eliasDeltaDecode(code string) (uint64, uint64) {
 		}
 	}
 
-	k = uint64(counter + 1)
-	n, _ = strconv.ParseUint(code[counter:counter+int(k)], 2, 64)
-	x, _ = strconv.ParseUint("1"+code[counter+int(k):counter+int(k+n-1)], 2, 64)
+	k = counter + 1
 
-	return x, uint64(counter)
+	if len(code) <= 2*counter {
+		return 0, 0
+	}
+
+	n, _ = strconv.ParseInt(code[counter:counter+int(k)], 2, 64)
+
+	if len(code) <= 2*counter+int(n) {
+		return 0, 0
+	}
+
+	x, _ = strconv.ParseInt("1"+code[counter+k:2*counter+int(n)], 2, 64)
+
+	return int(x), 2*counter + int(n)
 }
 
-func eliasOmega(num uint64) string {
+func eliasOmega(num int) string {
 	code := "0"
 	k := num
 
@@ -72,17 +93,21 @@ func eliasOmega(num uint64) string {
 			break
 		}
 
-		code = strconv.FormatUint(k, 2) + code
+		code = strconv.FormatInt(int64(k), 2) + code
 
-		k = uint64(len(strconv.FormatUint(k, 2)))
+		k = len(strconv.FormatInt(int64(k), 2)) - 1
 	}
 
 	return code
 }
 
-func eliasOmegaDecode(code string) (uint64, uint64) {
-	n := uint64(1)
+func eliasOmegaDecode(code string) (int, int) {
+	n := int64(1)
 	counter := 0
+
+	if len(code) == 0 {
+		return 0, 0
+	}
 
 	for {
 		if code[counter] == '0' {
@@ -90,80 +115,76 @@ func eliasOmegaDecode(code string) (uint64, uint64) {
 		}
 
 		counter = counter + int(n) + 1
-		n, _ = strconv.ParseUint(code[counter-int(n)-1:counter], 2, 64)
-	}
 
-	return n, uint64(counter + 1)
-}
-
-func fibonacci(num uint64) string {
-	code := "1"
-	f, a := fibonacciNumber(num)
-	coeffs := make([]int, a+1)
-
-	for i := range coeffs {
-		coeffs[i] = 0
-	}
-
-	coeffs[a] = 1
-	num -= uint64(f)
-
-	for {
-		if num == 0 {
-			break
+		if counter >= len(code)-1 {
+			return 0, 0
 		}
 
-		f, a = fibonacciNumber(num)
-		coeffs[a] = 1
-		num -= uint64(f)
+		n, _ = strconv.ParseInt(code[counter-int(n)-1:counter], 2, 64)
 	}
 
-	for i := len(coeffs) - 1; i >= 0; i-- {
-		code = fmt.Sprint(coeffs[i]) + code
+	return int(n), counter + 1
+}
+
+func fibonacci(num int) string {
+	code := ""
+	f := fibonacciNumber(num)
+
+	for i := len(f) - 1; i >= 0; i-- {
+		if f[i] <= num {
+			code = "1" + code
+			num -= f[i]
+		} else {
+			code = "0" + code
+		}
 	}
+
+	code += "1"
 
 	return code
 }
 
-func fibonacciDecode(code string) (uint64, uint64) {
-	x := uint64(0)
+func fibonacciDecode(code string) (int, int) {
+	x := 0
 	f := make([]int, 2)
 	f[0] = 1
-	f[1] = 1
+	f[1] = 2
 	i := 0
 
 	for {
-		if code[i] == '1' && code[i-1] == '1' {
-			break
+		if i >= len(code)-1 {
+			return 0, 0
 		}
 
 		if code[i] == '1' {
-			x += uint64(f[i+1])
+			x += f[i]
+
+			if code[i+1] == '1' {
+				break
+			}
 		}
 
 		f = append(f, f[i]+f[i+1])
 		i++
 	}
 
-	return x, uint64(i + 1)
+	return x, i + 2
 }
 
-func fibonacciNumber(k uint64) (int, int) {
+func fibonacciNumber(k int) []int {
 	f := make([]int, 2)
 	f[0] = 1
-	f[1] = 1
-	i := 1
+	f[1] = 2
+	i := 0
 
 	for {
-		if uint64(f[i]) > k {
+		if f[i] > k {
 			break
 		}
 
-		f = append(f, f[i]+f[i-1])
+		f = append(f, f[i]+f[i+1])
 		i++
 	}
 
-	i--
-
-	return f[i], i
+	return f[:len(f)-2]
 }

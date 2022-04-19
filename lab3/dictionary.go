@@ -1,5 +1,9 @@
 package lab3
 
+import (
+	"bytes"
+)
+
 const symbolCount = 256
 
 type entry struct {
@@ -14,17 +18,26 @@ type dictionary struct {
 
 func (d *dictionary) initialise() {
 	*d = dictionary{
-		entries: make([]entry, 0),
-		last:    0}
+		entries: make([]entry, symbolCount),
+		last:    symbolCount}
 
-	for i := 0; i < symbolCount; i++ {
-		d.entries = append(d.entries, entry{code: uint64(i), bytes: []byte{byte(i)}})
+	for i := range d.entries {
+		d.entries[i] = entry{code: uint64(i), bytes: []byte{byte(i)}}
 	}
-
-	d.last = symbolCount
 }
 
-func (d *dictionary) newEntry(bytes []byte) {
-	d.entries = append(d.entries, entry{code: d.last, bytes: bytes})
+func (d *dictionary) newEntry(b []byte) {
+	d.entries = append(d.entries, entry{code: d.last, bytes: make([]byte, 0)})
+	d.entries[d.last].bytes = append(d.entries[d.last].bytes, b...)
 	d.last++
+}
+
+func (d *dictionary) find(b []byte) int {
+	for _, e := range d.entries {
+		if bytes.Equal(b, e.bytes) {
+			return int(e.code)
+		}
+	}
+
+	return -1
 }
