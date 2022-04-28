@@ -34,6 +34,8 @@ func Predict(bytes *[][]byte, option int) [][]int {
 
 	for i := 0; i < height; i++ {
 		for j := 0; j < width; j++ {
+			predicted[i][j] = int((*bytes)[i][j]) - predicted[i][j]
+
 			if predicted[i][j] < 0 {
 				predicted[i][j] += 256
 			}
@@ -49,9 +51,9 @@ func predict1(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
 			if j < 3 {
-				(*predicted)[i][j] = int((*bytes)[i][j])
+				(*predicted)[i][j] = 0
 			} else {
-				(*predicted)[i][j] = int((*bytes)[i][j]) - int((*bytes)[i][j-3])
+				(*predicted)[i][j] = int((*bytes)[i][j-3])
 			}
 		}
 	}
@@ -61,9 +63,9 @@ func predict2(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
 			if i == 0 {
-				(*predicted)[i][j] = int((*bytes)[i][j])
+				(*predicted)[i][j] = 0
 			} else {
-				(*predicted)[i][j] = int((*bytes)[i][j]) - int((*bytes)[i-1][j])
+				(*predicted)[i][j] = int((*bytes)[i-1][j])
 			}
 		}
 	}
@@ -73,9 +75,9 @@ func predict3(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
 			if i == 0 || j < 3 {
-				(*predicted)[i][j] = int((*bytes)[i][j])
+				(*predicted)[i][j] = 0
 			} else {
-				(*predicted)[i][j] = int((*bytes)[i][j]) - int((*bytes)[i-1][j-3])
+				(*predicted)[i][j] = int((*bytes)[i-1][j-3])
 			}
 		}
 	}
