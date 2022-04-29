@@ -2,6 +2,7 @@ package lab4
 
 import (
 	"KiKD/lab2"
+	"KiKD/lab3"
 	"bufio"
 	"errors"
 	"fmt"
@@ -39,11 +40,11 @@ func LoadTGAFile(filename string) [][]byte {
 	IDLength = int(header[0])
 	colorMapType = int(header[1])
 	imageType = int(header[2])
-	imageWidth = int(header[13])*256 + int(header[12])
-	imageHeight = int(header[15])*256 + int(header[14])
+	imageWidth = int(header[12]) + int(header[13])*256
+	imageHeight = int(header[14]) + int(header[15])*256
 	pixelDepth = int(header[16])
 
-	bytes = make([][]byte, 3*imageHeight)
+	bytes = make([][]byte, imageHeight)
 
 	for i = range bytes {
 		bytes[i] = make([]byte, 3*imageWidth)
@@ -76,6 +77,51 @@ func LoadTGAFile(filename string) [][]byte {
 	return bytes
 }
 
-func Entropy() {
+func Entropy(bytes *[][]byte) (float64, float64, float64, float64) {
+	total := make(map[byte]uint, 256)
+	red := make(map[byte]uint, 256)
+	green := make(map[byte]uint, 256)
+	blue := make(map[byte]uint, 256)
+	var entropy float64
+	var entropyRed float64
+	var entropyGreen float64
+	var entropyBlue float64
 
+	for i := range *bytes {
+		for j := range (*bytes)[i] {
+			total[(*bytes)[i][j]]++
+
+			switch j % 3 {
+			case 0:
+				red[(*bytes)[i][j]]++
+			case 1:
+				green[(*bytes)[i][j]]++
+			case 2:
+				blue[(*bytes)[i][j]]++
+			}
+		}
+	}
+
+	entropy = lab3.Entropy(total)
+	entropyRed = lab3.Entropy(red)
+	entropyGreen = lab3.Entropy(green)
+	entropyBlue = lab3.Entropy(blue)
+
+	return entropy, entropyRed, entropyGreen, entropyBlue
+}
+
+func IntArrayToByteArray(arr *[][]int) [][]byte {
+	bytes := make([][]byte, len(*arr))
+
+	for i := range bytes {
+		bytes[i] = make([]byte, len((*arr)[i]))
+	}
+
+	for i := range *arr {
+		for j := range (*arr)[i] {
+			bytes[i][j] = byte((*arr)[i][j])
+		}
+	}
+
+	return bytes
 }

@@ -6,7 +6,7 @@ func first(b []byte, _ error) []byte {
 	return b
 }
 
-func entropy(data map[byte]uint) float64 {
+func Entropy(data map[byte]uint) float64 {
 	entropy := 0.0
 	sum := uint(0)
 

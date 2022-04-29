@@ -116,6 +116,6 @@ func Encode(in string, out string, param int) {
 	fmt.Printf("Size of file before compression: %d\n", fileInStat.Size())
 	fmt.Printf("Size of file after compression: %d\n", outputSize)
 	fmt.Printf("Compression rate: %f\n", lab2.CalculateCompressionRate(uint64(fileInStat.Size()), uint64(outputSize)))
-	fmt.Printf("Entropy of input file: %f\n", entropy(symbols))
+	fmt.Printf("Entropy of input file: %f\n", Entropy(symbols))
 	fmt.Printf("Entropy of output code: \n")
 }

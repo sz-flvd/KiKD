@@ -1,5 +1,9 @@
 package lab4
 
+import (
+	"math"
+)
+
 func Predict(bytes *[][]byte, option int) [][]int {
 	height := len(*bytes)
 	width := len((*bytes)[0])
@@ -36,8 +40,12 @@ func Predict(bytes *[][]byte, option int) [][]int {
 		for j := 0; j < width; j++ {
 			predicted[i][j] = int((*bytes)[i][j]) - predicted[i][j]
 
-			if predicted[i][j] < 0 {
-				predicted[i][j] += 256
+			for {
+				if predicted[i][j] < 0 {
+					predicted[i][j] += 256
+				} else {
+					break
+				}
 			}
 
 			predicted[i][j] %= 256
@@ -86,7 +94,9 @@ func predict3(bytes *[][]byte, predicted *[][]int) {
 func predict4(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
-			if i == 0 {
+			if i == 0 && j < 3 {
+				(*predicted)[i][j] = 0
+			} else if i == 0 {
 				(*predicted)[i][j] = int((*bytes)[i][j-3])
 			} else if j < 3 {
 				(*predicted)[i][j] = int((*bytes)[i-1][j])
@@ -100,7 +110,9 @@ func predict4(bytes *[][]byte, predicted *[][]int) {
 func predict5(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
-			if i == 0 {
+			if i == 0 && j < 3 {
+				(*predicted)[i][j] = 0
+			} else if i == 0 {
 				(*predicted)[i][j] = int((*bytes)[i][j-3]) / 2
 			} else if j < 3 {
 				(*predicted)[i][j] = int((*bytes)[i-1][j])
@@ -114,7 +126,9 @@ func predict5(bytes *[][]byte, predicted *[][]int) {
 func predict6(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
-			if i == 0 {
+			if i == 0 && j < 3 {
+				(*predicted)[i][j] = 0
+			} else if i == 0 {
 				(*predicted)[i][j] = int((*bytes)[i][j-3])
 			} else if j < 3 {
 				(*predicted)[i][j] = int((*bytes)[i-1][j]) / 2
@@ -128,7 +142,9 @@ func predict6(bytes *[][]byte, predicted *[][]int) {
 func predict7(bytes *[][]byte, predicted *[][]int) {
 	for i := range *predicted {
 		for j := range (*predicted)[i] {
-			if i == 0 {
+			if i == 0 && j < 3 {
+				(*predicted)[i][j] = 0
+			} else if i == 0 {
 				(*predicted)[i][j] = int((*bytes)[i][j-3]) / 2
 			} else if j < 3 {
 				(*predicted)[i][j] = int((*bytes)[i-1][j]) / 2
@@ -140,5 +156,26 @@ func predict7(bytes *[][]byte, predicted *[][]int) {
 }
 
 func predictNew(bytes *[][]byte, predicted *[][]int) {
+	var n int
+	var w int
+	var nw int
+	for i := range *predicted {
+		for j := range (*predicted)[i] {
+			if i == 0 || j < 3 {
+				(*predicted)[i][j] = 0
+			} else {
+				n = int((*bytes)[i-1][j])
+				w = int((*bytes)[i][j-3])
+				nw = int((*bytes)[i-1][j-3])
 
+				if nw >= int(math.Max(float64(n), float64(w))) {
+					(*predicted)[i][j] = int(math.Max(float64(n), float64(w)))
+				} else if nw <= int(math.Min(float64(n), float64(w))) {
+					(*predicted)[i][j] = int(math.Min(float64(n), float64(w)))
+				} else {
+					(*predicted)[i][j] = n + w - nw
+				}
+			}
+		}
+	}
 }
