@@ -100,9 +100,6 @@ func SignalToNoiseRatio(img *TGAImage, mse float64) float64 {
 	for i := range (*img).imageData {
 		for j := range (*img).imageData[i] {
 			snr += math.Pow(float64(TaxicabDistance((*img).imageData[i][j], zeroPixel)), 2)
-			// snr += math.Pow(float64((*img).imageData[i][j].r), 2)
-			// snr += math.Pow(float64((*img).imageData[i][j].g), 2)
-			// snr += math.Pow(float64((*img).imageData[i][j].b), 2)
 		}
 	}
 
