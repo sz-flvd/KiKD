@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"time"
 )
 
 func lab5Main() {
@@ -29,12 +30,15 @@ func lab5Main() {
 			fmt.Println("Colour depth should be between 0 and 24")
 			return
 		}
+		start := time.Now()
 		outImg := lab5.Quantize(&img, k)
+		elapsed := time.Since(start)
 		(&outImg).SaveImage(out)
 
 		mse = lab5.MeanSquaredError(&img, &outImg)
 		snr = lab5.SignalToNoiseRatio(&img, mse)
 
+		fmt.Printf("Elapsed time: %s\n", elapsed)
 		fmt.Printf("Mean squared error: %f\n", mse)
 		fmt.Printf("Signal-to-noise ratio: %f [%f dB]\n", snr, 10*math.Log10(snr))
 	}
