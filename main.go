@@ -1,62 +1,36 @@
 package main
 
 import (
-	"KiKD/lab4"
+	"KiKD/lab2"
+	"KiKD/lab5"
 	"fmt"
+	"math"
 	"os"
+	"strconv"
 )
 
-func lab4Main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: go run main.go file.tga")
-		return
-	}
+func lab5Main() {
+	var img lab5.TGAImage
+	var out string
+	var k int
+	var e error
+	var mse float64
+	var snr float64
 
-	bytes := lab4.LoadTGAFile(os.Args[1])
-	var predicted [][]int
-	var predictedBytes [][]byte
-	var entropy float64
-	var entropyRed float64
-	var entropyGreen float64
-	var entropyBlue float64
-	var best float64
-	var bestRed float64
-	var bestGreen float64
-	var bestBlue float64
-	bestPredicates := []int{0, 0, 0, 0}
+	(&img).LoadImage(os.Args[1])
+	out = os.Args[2]
+	k, e = strconv.Atoi(os.Args[3])
+	lab2.Check(e)
+	outImg := lab5.Quantize(&img, k)
+	(&outImg).SaveImage(out)
 
-	entropy, entropyRed, entropyGreen, entropyBlue = lab4.Entropy(&bytes)
-	best, bestRed, bestGreen, bestBlue = entropy, entropyRed, entropyGreen, entropyBlue
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Printf("Predicate\tEntropy\t\tEntropy - R\tEntropy - G\tEntropy - B\n")
-	fmt.Printf("Original file\t%f\t%f\t%f\t%f\n", entropy, entropyRed, entropyGreen, entropyBlue)
+	mse = lab5.MeanSquaredError(&img, &outImg)
+	snr = lab5.SignalToNoiseRatio(&img, mse)
 
-	for i := 1; i <= 8; i++ {
-		predicted = lab4.Predict(&bytes, i)
-		predictedBytes = lab4.IntArrayToByteArray(&predicted)
-		entropy, entropyRed, entropyGreen, entropyBlue = lab4.Entropy(&predictedBytes)
-		if entropy < best {
-			best = entropy
-			bestPredicates[0] = i
-		}
-		if entropyRed < bestRed {
-			bestRed = entropyRed
-			bestPredicates[1] = i
-		}
-		if entropyGreen < bestGreen {
-			bestGreen = entropyGreen
-			bestPredicates[2] = i
-		}
-		if entropyBlue < bestBlue {
-			bestBlue = entropyBlue
-			bestPredicates[3] = i
-		}
-		fmt.Printf("Predicate %d\t%f\t%f\t%f\t%f\n", i, entropy, entropyRed, entropyGreen, entropyBlue)
-	}
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Printf("Best predicates:\t%d\t\t%d\t\t%d\t\t%d\n", bestPredicates[0], bestPredicates[1], bestPredicates[2], bestPredicates[3])
+	fmt.Printf("Mean squared error: %f\n", mse)
+	fmt.Printf("Signal-to-noise ratio: %f [%f dB]\n", snr, 10*math.Log10(snr))
 }
 
 func main() {
-	lab4Main()
+	lab5Main()
 }
