@@ -63,6 +63,7 @@ func LoadTGAFile(filename string) [][]byte {
 			}
 
 			bytes[i][j] = b
+			// bytes[imageHeight-i-1][j] = b
 		}
 	}
 
