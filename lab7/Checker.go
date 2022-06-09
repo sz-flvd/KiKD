@@ -10,6 +10,8 @@ import (
 )
 
 func Check(in1 string, in2 string) {
+	fmt.Printf("\t# Comparing [%s] with [%s]\n", in1, in2)
+
 	diffCount := 0
 
 	fileIn1, errIn1 := os.Open(in1)
@@ -45,9 +47,9 @@ func Check(in1 string, in2 string) {
 	}
 
 	if diffCount == 0 {
-		fmt.Printf("Files\n%s\nand\n%s\nare identical!", in1, in2)
+		fmt.Printf("\t# Files [%s] and [%s] are identical!\n", in1, in2)
 	} else {
-		fmt.Printf("%d different 4-bit blocks found between\n%s\nand\n%s\n", diffCount, in1, in2)
+		fmt.Printf("\t# %d different 4-bit blocks found between [%s] and [%s]\n", diffCount, in1, in2)
 	}
 }
 

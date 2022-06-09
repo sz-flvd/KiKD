@@ -4,6 +4,7 @@ import (
 	"KiKD/lab2"
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -11,6 +12,8 @@ import (
 )
 
 func GenerateNoise(p float64, in string, out string) {
+	fmt.Printf("\t# Generating noise from [%s] to [%s] (with %f probability for each bit)\n", in, out, p)
+
 	fileIn, errIn := os.Open(in)
 	lab2.Check(errIn)
 	defer fileIn.Close()
@@ -20,6 +23,8 @@ func GenerateNoise(p float64, in string, out string) {
 	defer fileOut.Close()
 
 	br := bufio.NewReader(fileIn)
+	src := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(src)
 
 	for {
 		b, e := br.ReadByte()
@@ -32,17 +37,14 @@ func GenerateNoise(p float64, in string, out string) {
 			}
 		}
 
-		_, errWrite := fileOut.Write([]byte{shiftBits(b, p)})
+		_, errWrite := fileOut.Write([]byte{shiftBits(b, p, random)})
 		lab2.Check(errWrite)
 	}
 }
 
-func shiftBits(b byte, p float64) byte {
+func shiftBits(b byte, p float64, random *rand.Rand) byte {
 	var out byte
 	var mod byte
-
-	src := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(src)
 
 	for i := 0; i < 8; i++ {
 		mod = b % 2

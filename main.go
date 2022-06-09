@@ -63,6 +63,6 @@ func lab7Main() {
 }
 
 func main() {
-	lab6Main()
+	// lab6Main()
 	lab7Main()
 }
